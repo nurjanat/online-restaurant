@@ -41,6 +41,14 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ["id","total_sum","date_created","status","payment_type",
                   "worker","promocode","total","mto"]
 
+
+    def create(self, validated_data):
+        mto_data = validated_data.pop('mto')
+        order = Order.objects.create(**validated_data)
+        for mto in mto_data:
+            MealToOrder.objects.create(order=order, **mto)
+        return order
+
     def get_total(self,obj):
         total_price = 0
         meal_to_order = obj.mto.all()
@@ -59,12 +67,6 @@ class OrderSerializer(serializers.ModelSerializer):
     #             obj.save()
     #             print(4)
 
-    def create(self, validated_data):
-        mto_data = validated_data.pop('mto')
-        order = Order.objects.create(**validated_data)
-        for mto in mto_data:
-            MealToOrder.objects.create(order=order, **mto)
-        return Order
 
 
 class WorkerSerializer(serializers.ModelSerializer):
