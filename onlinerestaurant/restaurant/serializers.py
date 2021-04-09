@@ -33,13 +33,24 @@ class MealToOrderSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     total = serializers.SerializerMethodField()
     status = serializers.CharField(read_only=True)
-    # promo = serializers.SerializerMethodField()
+    promo = serializers.SerializerMethodField()
     mto = MealToOrderSerializer(many=True)
+    order_count = serializers.SerializerMethodField()
+
+
+
+
+
 
     class Meta:
         model = Order
         fields = ["id","total_sum","date_created","status","payment_type",
-                  "worker","promocode","total","mto"]
+                  "worker","promocode","total","mto","order_count","promo"]
+
+    def get_order_count(self, obj):
+        obj.worker.order_count += 1
+        obj.worker.save()
+
 
 
     def create(self, validated_data):
@@ -58,21 +69,34 @@ class OrderSerializer(serializers.ModelSerializer):
         obj.save()
         return 1
 
-    # def get_promo(self,obj):
-    #     promocodes = Promocode.objects.all()
-    #     for i in promocodes:
-    #         print(i.code)
-    #         if i.code == obj.promocode:
-    #             obj.total_sum -= obj.total_sum // 100 * i.sale_amount
-    #             obj.save()
-    #             print(4)
+    def get_promo(self,obj):
+        promocodes = Promocode.objects.all()
+        for i in promocodes:
+            print(i.code)
+            if i.code == obj.promocode:
+                obj.total_sum -= obj.total_sum // 100 * i.sale_amount
+                obj.promocode.status = 'dead'
+                obj.promocode.save()
+                obj.save()
+                print(4)
 
 
 
 class WorkerSerializer(serializers.ModelSerializer):
+    salary = serializers.SerializerMethodField()
 
     class Meta:
         model = Worker
         fields = '__all__'
+
+
+    def get_salary(self,obj):
+        salary = obj.salary
+        if obj.order_count > 5:
+            obj.salary += 100
+            obj.save()
+
+
+
 
 

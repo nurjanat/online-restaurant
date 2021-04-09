@@ -43,13 +43,17 @@ class Worker(models.Model):
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
     order_count = models.PositiveIntegerField()
-
+    salary = models.PositiveIntegerField()
 
 
 
 class Promocode(models.Model):
     code = models.CharField(max_length=56)
-    status = models.CharField(max_length=90)
+    statuses = (
+        ('alive','alive'),
+        ('dead','dead')
+    )
+    status = models.CharField(max_length=90,choices=statuses)
     end_date = models.DateTimeField()
     sale_amount = models.PositiveIntegerField()
 
